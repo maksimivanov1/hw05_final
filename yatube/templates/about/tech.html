@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Технологии{% endblock %}
+{% block content %}
+{% comment %} Колонки с отступом сверху и снизу {% endcomment %}
+<div class="row">
+  <h1>Вот что я умею</h1>
+  {% comment %}
+    Боковой блок со списком технологий 
+    Займет всю ширину блока на мобильном
+    и 25% при размерах экрана ≥768px
+  {% endcomment %}
+  <aside class="col-12 col-md-3">
+    <ul class="list-group list-group-flush">
+      <li class="list-group-item">
+        Python
+      </li>
+      <li class="list-group-item">
+        Django
+      </li>
+      <li class="list-group-item">
+        HTML / CSS
+      </li>
+    </ul>
+  </aside>
+  {% comment %}
+    Статья  
+    Займет всю ширину блока на мобильном
+    и 75% при размерах экрана ≥768px
+  {% endcomment %}
+  <article class="col-12 col-md-9">
+    <p>
+        Я не очень хорошо понимаю работу декораторов и иногда вводит в заблуждение масштабное ООП(как в этом проекте).
+        К сожалению тут не будет картинок и креатива,так как я отстаю от программы и у меня на это мало времении,
+        но если я всё успею или уйду в академ,то обязательно оживлю данные страницы!
+    </p>
+
+  </article>
+</div>
+{% endblock %}
