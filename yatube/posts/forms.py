@@ -10,6 +10,7 @@ class PostForm(ModelForm):
         help_text = {'text': 'Текст нового поста',
                      'group': 'Группа которой будет присвоен пост'}
 
+
 class CommentForm(ModelForm):
     class Meta():
         model = Comment

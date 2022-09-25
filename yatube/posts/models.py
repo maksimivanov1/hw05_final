@@ -71,6 +71,7 @@ class Comment(models.Model):
     def __str__(self):
         return self.text[0:15]
 
+
 class Follow(models.Model):
     """Модель для подписки"""
     user = models.ForeignKey(
