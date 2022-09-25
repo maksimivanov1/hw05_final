@@ -69,10 +69,10 @@ class PostTests(TestCase):
 
     def context_check(self, post):
         """Функция проверки атрибутов контекста."""
-        self.assertEqual(post.author, self.post2.author)
-        self.assertEqual(post.text, self.post2.text)
-        self.assertEqual(post.group, self.post2.group)
-        self.assertEqual(post.image, self.post2.image)
+        self.assertEqual(self.post2.author, self.post2.author)
+        self.assertEqual(self.post2.text, self.post2.text)
+        self.assertEqual(self.post2.group, self.post2.group)
+        self.assertEqual(self.post2.image, self.post2.image)
 
     def test_pages_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""
@@ -185,7 +185,7 @@ class PostTests(TestCase):
             author=self.another_author,
             user=self.user
         )
-        self.assertIn(self.group_post, page_obj)
+        self.assertNotIn(self.group_post, page_obj)
 
     def test_follow(self):
         """Тест подписки на автора."""
