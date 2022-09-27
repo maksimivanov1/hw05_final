@@ -122,6 +122,7 @@ class PostURLTests(TestCase):
             get(reverse('posts:post_edit', kwargs={'post_id': self.post.id}))
         self.assertTemplateUsed(response, 'posts/create_post.html')
 
+
 class TestComment(TestCase):
     @classmethod
     def setUpClass(cls):
@@ -134,7 +135,7 @@ class TestComment(TestCase):
             pub_date='31 июля 1854',
             author=cls.user1,
             text='Тестовый текст',
-            id =5
+            id=5
         )
 
     def test_comment_guest_client(self):
@@ -142,6 +143,7 @@ class TestComment(TestCase):
         response = self.guest_client.get(reverse(
             'posts:add_comment', kwargs={'post_id': self.post.id}))
         self.assertEqual(response.status_code, HTTPStatus.FOUND)
+
 
 class TestFoolow(TestCase):
     @classmethod
@@ -155,9 +157,9 @@ class TestFoolow(TestCase):
             pub_date='31 июля 1854',
             author=cls.user1,
             text='Тестовый текст',
-            id =5
+            id=5
         )
-    
+
     def test_follow_index_guest_client(self):
         """follow_index недоступно неавторизованному клиенту."""
         response = self.guest_client.get(reverse('posts:follow_index'))
@@ -169,15 +171,22 @@ class TestFoolow(TestCase):
         self.assertTemplateUsed(response, 'posts/follow.html')
 
     def test_profile_follow_redirect(self):
-        """Авторизированный пользователь правильно редиректится."""
+        """
+        Авторизированный пользователь
+        правильно редиректится.
+        """
         response = self.authorized_client.\
-            get(reverse('posts:profile_follow', kwargs={'username': self.user1.username}))
+            get(reverse('posts:profile_follow', kwargs={
+                'username': self.user1.username}))
         self.assertRedirects(response, reverse(
             'posts:profile', kwargs={'username': self.user1.username}))
 
     def test_profile_unfollow_redirect(self):
-        """Авторизированный пользователь правильно редиректится."""
+        """
+        Авторизированный пользователь
+        правильно редиректится.
+        """
         response = self.authorized_client.\
-            get(reverse('posts:profile_unfollow', kwargs={'username': self.user1.username}))
-        self.assertRedirects(response, reverse('posts:index'))        
-
+            get(reverse('posts:profile_unfollow', kwargs={
+                'username': self.user1.username}))
+        self.assertRedirects(response, reverse('posts:index'))
