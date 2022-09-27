@@ -78,8 +78,8 @@ class PostTests(TestCase):
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
         self.user_follower = Follow.objects.create(
-            user=self.user_author,
-            author=self.another_author
+            user=self.user,
+            author=self.user_author
         )
 
     def context_check(self, post):
@@ -202,10 +202,7 @@ class PostTests(TestCase):
                 title='Заголовок для 1 тестовой группы',
                 slug='test-slug5')
         )
-        self.authorized_client.get(
-            reverse('posts:profile_follow',
-                    kwargs={'username': self.user_author.username})
-        )
+        self.user_follower
         follower_index_url = reverse('posts:follow_index')
         response = self.authorized_client.get(follower_index_url)
         objects = response.context['page_obj']
@@ -280,7 +277,6 @@ class TestComment(TestCase):
         )
         cls.test_user = User.objects.create_user(username='Ляо')
         cls.post = Post.objects.create(
-            pub_date='31 июля 1854',
             author=cls.test_user,
             text='Бам',
             group=cls.group,
@@ -294,7 +290,7 @@ class TestComment(TestCase):
         self.author = User.objects.create_user(username='Ляо1')
         self.authorized_client_author.force_login(self.author)
 
-    def test_comment_2(self):
+    def test_comment(self):
         """Проверка работы комментариев."""
         post = Post.objects.create(
             author=self.test_user,
