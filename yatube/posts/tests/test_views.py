@@ -77,6 +77,10 @@ class PostTests(TestCase):
         self.user = User.objects.create_user(username='max888')
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
+        self.user_follower = Follow.objects.create(
+            user=self.user_author,
+            author=self.another_author
+        )
 
     def context_check(self, post):
         """Функция проверки атрибутов контекста."""
@@ -189,36 +193,40 @@ class PostTests(TestCase):
     def test_post_for_follower(self):
         """
         Новая запись пользователя появляется в ленте тех,
-        кто на него подписан и не появляется в ленте тех,
-        кто не подписан.
+        кто на него подписан.
         """
-        author = User.objects.create(username='Автор')
-        user_follower = Follow.objects.create(
-            user=User.objects.create(username='подписчик'),
-            author=author
-        )
-        self.authorized_client.force_login(user_follower.user)
-        user_not_follower = User.objects.create(username='не_подписчик')
-        self.authorized_client2 = Client()
-        self.authorized_client2.force_login(user_not_follower)
         post_for_following = Post.objects.create(
-            author=author,
+            author=self.user_author,
             text='Текст с большим количеством букв',
             group=Group.objects.create(
                 title='Заголовок для 1 тестовой группы',
                 slug='test-slug5')
         )
         self.authorized_client.get(
-            reverse('posts:profile_follow', kwargs={'username': self.author})
+            reverse('posts:profile_follow',
+                    kwargs={'username': self.user_author.username})
         )
         follower_index_url = reverse('posts:follow_index')
         response = self.authorized_client.get(follower_index_url)
         objects = response.context['page_obj']
         self.assertIn(post_for_following, objects)
-        # Пост не появляется в ленте у не_подписчика
+
+    def post_for_nofollower(self):
+        """
+        Новая запись пользователя не появляется в ленте тех,
+        кто на него не подписан.
+        """
+        post_for_following = Post.objects.create(
+            author=self.user_author,
+            text='Текст с большим количеством букв',
+            group=Group.objects.create(
+                title='Заголовок для 1 тестовой группы',
+                slug='test-slug5')
+        )
+        follower_index_url = reverse('posts:follow_index')
         response = self.authorized_client2.get(follower_index_url)
-        objects_count = len(response.context['page_obj'])
-        self.assertEqual(objects_count, 0)
+        objects = response.context['page_obj']
+        self.assertNotIn(post_for_following, objects)
 
     def test_follow(self):
         """Тест подписки на автора."""

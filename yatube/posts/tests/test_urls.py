@@ -7,7 +7,7 @@ from posts.models import Group, Post
 User = get_user_model()
 
 
-class PostURLTests(TestCase):
+class PostsAllURLTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -55,7 +55,8 @@ class PostURLTests(TestCase):
                                              kwargs={'slug': self.group.slug}),
             'posts/create_post.html': reverse('posts:post_create'),
             'posts/profile.html':
-            reverse('posts:profile', kwargs={'username': self.user.username})
+            reverse('posts:profile', kwargs={'username': self.user.username}),
+            'posts/follow.html': reverse('posts:follow_index')
         }
         for template, url in templates_url_names.items():
             with self.subTest(url=url):
@@ -92,16 +93,31 @@ class PostURLTests(TestCase):
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_private_url(self):
-        """Без авторизации приватные URL недоступны."""
+        """
+        Без авторизации приватные URL недоступны
+        и редиректы работают верно.
+        """
+        response_unfollow = self.authorized_client.\
+            get(reverse('posts:profile_unfollow', kwargs={
+                'username': self.user.username}))
+        response_follow = self.authorized_client.\
+            get(reverse('posts:profile_follow', kwargs={
+                'username': self.user.username}))
         url_names = (
             '/admin/',
             '/create',
-            reverse('posts:post_detail', kwargs={'post_id': self.post.id})
+            reverse('posts:post_detail', kwargs={'post_id': self.post.id}),
+            reverse(
+                'posts:add_comment', kwargs={'post_id': self.post.id}),
+            reverse('posts:follow_index')
         )
         for adress in url_names:
             with self.subTest():
                 response = self.guest_client.get(adress)
                 self.assertIsNot(response.status_code, HTTPStatus.OK)
+        self.assertRedirects(response_follow, reverse(
+            'posts:profile', kwargs={'username': self.user.username}))
+        self.assertRedirects(response_unfollow, reverse('posts:index'))
 
     def test_post_edit_no_auth_redirect(self):
         """Страница /post_edit для анонима производит редирект."""
@@ -121,72 +137,3 @@ class PostURLTests(TestCase):
         response = self.author.\
             get(reverse('posts:post_edit', kwargs={'post_id': self.post.id}))
         self.assertTemplateUsed(response, 'posts/create_post.html')
-
-
-class TestComment(TestCase):
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.user1 = User.objects.create_user(username='max888')
-        cls.authorized_client = Client()
-        cls.authorized_client.force_login(cls.user1)
-        cls.guest_client = Client()
-        cls.post = Post.objects.create(
-            pub_date='31 июля 1854',
-            author=cls.user1,
-            text='Тестовый текст',
-            id=5
-        )
-
-    def test_comment_guest_client(self):
-        """Неавторизованному клиенту недоступно комментирование."""
-        response = self.guest_client.get(reverse(
-            'posts:add_comment', kwargs={'post_id': self.post.id}))
-        self.assertEqual(response.status_code, HTTPStatus.FOUND)
-
-
-class TestFoolow(TestCase):
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.user1 = User.objects.create_user(username='max1')
-        cls.authorized_client = Client()
-        cls.authorized_client.force_login(cls.user1)
-        cls.guest_client = Client()
-        cls.post = Post.objects.create(
-            pub_date='31 июля 1854',
-            author=cls.user1,
-            text='Тестовый текст',
-            id=5
-        )
-
-    def test_follow_index_guest_client(self):
-        """follow_index недоступно неавторизованному клиенту."""
-        response = self.guest_client.get(reverse('posts:follow_index'))
-        self.assertEqual(response.status_code, HTTPStatus.FOUND)
-
-    def test_follow_index_template(self):
-        """follow_index использует шаблон follow.html"""
-        response = self.authorized_client.get(reverse('posts:follow_index'))
-        self.assertTemplateUsed(response, 'posts/follow.html')
-
-    def test_profile_follow_redirect(self):
-        """
-        Авторизированный пользователь
-        правильно редиректится.
-        """
-        response = self.authorized_client.\
-            get(reverse('posts:profile_follow', kwargs={
-                'username': self.user1.username}))
-        self.assertRedirects(response, reverse(
-            'posts:profile', kwargs={'username': self.user1.username}))
-
-    def test_profile_unfollow_redirect(self):
-        """
-        Авторизированный пользователь
-        правильно редиректится.
-        """
-        response = self.authorized_client.\
-            get(reverse('posts:profile_unfollow', kwargs={
-                'username': self.user1.username}))
-        self.assertRedirects(response, reverse('posts:index'))
