@@ -129,12 +129,14 @@ def profile_follow(request, username):
     return redirect('posts:profile', username=username)
 
 
-# Дизлайк, отписка
 @login_required
 def profile_unfollow(request, username):
+    current_user = request.user
     author = get_object_or_404(User, username=username)
-    Follow.objects.filter(
+    following_query = Follow.objects.filter(
         author=author,
-        user=request.user,
-    ).delete()
-    return redirect('posts:profile', username=username)
+        user=current_user
+    )
+    if following_query.exists():
+        following_query.delete()
+    return redirect('posts:index')
